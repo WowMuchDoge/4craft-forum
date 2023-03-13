@@ -9,33 +9,43 @@
     const password = ref('')
 
     const showMenu = ref(false)
+    const imageUrl = ref(null)
+    const fileInput = ref(null)
+    const fileLink = ref('')
 
-    const hehehehaw = ref('Choose File')
+    function onFileChange(event) {
+        const file = fileInput.value.files[0]
+        console.log(file)
+        imageUrl.value = URL.createObjectURL(file)
+        console.log(imageUrl.value)
+    }
 
-    const updateFileName = (event) => {
-      const file = event.target.files[0];
-      fileName.value = file ? file.name : '';
-      label.value = fileName.value ? 'Avatar chosen' : 'Choose an avatar';
-    };
+    async function submitUpdates() {
+        const file = fileInput.value.files[0]
+        const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(`avatars/${file.name}`, file)
 
-    const fileName = ref('');
-    const label = ref('Choose an avatar');
-
-    async function submit() {
-        const { data: data, error: error } = await supabase.auth.signUp({
-            email: email.value,
-            password: password.value,
-            options: {
-                data: {
-                    username: username.value
-                }
-            }
-        })
         if (error) {
             console.log(error)
-            plError.value = error.message
-            }
         }
+        console.log(await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl)
+        fileLink.value = await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl
+    }
+
+    async function submit() {
+        const { error: pError } = await supabase
+            .from('profiles')
+            .update({
+                avatar_url: fileLink.value
+            })
+            .eq('id', user.value.id)
+            if (pError) {
+                console.log(pError)
+            }
+            console.log(fileLink.value, user.value.id)
+    }
+
 </script>
 
 <template>
@@ -95,16 +105,17 @@
         <h2>SIGN UP</h2>
         <div class="w-full h-10 flex-row flex">
             <div class="flex-1 flex justify-center items-center">
-                <input class="fileThingy" type="file" ref="fileInput"/>
+                <input class="fileThingy cursor-pointer" @change="onFileChange" type="file" ref="fileInput"/>
             </div>
             <div class="flex-1 flex justify-center items-center">
-                <img src="../assets/favicon.png" alt="" class="h-8 w-8 custom-file-upload">
+                <img :src="imageUrl" class="h-16 w-16 translate-x-8 custom-file-upload" />
             </div>
         </div>
         <p type="Username:"><input v-model="username" placeholder="Username" /></p>
         <p type="Email:"><input v-model="email" placeholder="Email" /></p>
         <p type="Password:"><input v-model="password" placeholder="Password" type="password"/></p>
         <button @click="submit">Sign Up</button>
+        <button @click="submitUpdates"></button>
       </form>
 
     </body>
