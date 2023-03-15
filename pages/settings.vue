@@ -1,4 +1,6 @@
 <script setup>
+import { SourceNode } from 'source-map-js/lib/source-node';
+
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
@@ -7,6 +9,8 @@
     const username = ref('')
     const email = ref('')
     const password = ref('')
+
+    const validImage = ref(false)
 
     const showMenu = ref(false)
     const imageUrl = ref(null)
@@ -19,8 +23,6 @@
     async function onFileChange(event) {
         const file = event.target.files[0]
         if (!file) return
-
-        imageUrl.value = URL.createObjectURL(file)
 
         const image = new Image()
         image.src = URL.createObjectURL(file)
@@ -35,15 +37,29 @@
         let width = mSize.value
         let height = mSize.value
 
+        if (width > width.value) {
+            console.log('Your image must be 128x128 pixels or smaller')
+            return
+        } else if (width != height) {
+            console.log('Make sure your image aspect ratio is 1:1')
+            return
+        }  else {
+            console.log(event.target.files[0])
+            validImage.value = true
+        }
+
         canvas.width = width
         canvas.height = height
         context.drawImage(image, 0, 0, mSize.value, mSize.value)
 
         previewUrl.value = canvas.toDataURL('image/jpeg')
-        console.log(previewUrl.value)
 
-        console.log(URL.createObjectURL(file))
-        
+        const base64String = previewUrl.value
+        const resopnse = await fetch(base64String)
+        const blob = await resopnse.blob()
+        console.log(URL.createObjectURL(blob))
+
+        imageUrl.value = URL.createObjectURL(blob)
     }
 
     async function submitUpdates() {
@@ -52,9 +68,10 @@
  
     async function submit() {
         const file = fileInput.value.files[0]
+        console.log(file)
         const { data, error } = await supabase.storage
             .from('avatars')
-            .upload(`avatars/${file.name}`, previewUrl.value)
+            .upload(`avatars/${file.name}`, imageUrl.value)
 
         if (error) {
             console.log(error)
@@ -73,7 +90,7 @@
         const { error: pError } = await supabase
             .from('profiles')
             .update({
-                avatar_url: previewUrl.value
+                avatar_url: imageUrl.value
             })
             .eq('id', user.value.id)
             if (pError) {
@@ -144,7 +161,7 @@
                 <input class="fileThingy cursor-pointer" @change="onFileChange" type="file" ref="fileInput"/>
             </div>
             <div class="flex-1 flex justify-center items-center">
-                <img :src="imageUrl" class="h-16 w-16 translate-x-8 custom-file-upload rounded-2xl" />
+                <img :src="previewUrl" class="h-16 w-16 translate-x-8 custom-file-upload rounded-2xl" />
             </div>
         </div>
         <p type="Bio:"><input v-model="bio" placeholder="Bio" type="text"/></p>
