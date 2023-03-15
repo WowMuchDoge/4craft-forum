@@ -2,7 +2,7 @@
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
-    let plError = ref('')
+    let bio = ref('')
 
     const username = ref('')
     const email = ref('')
@@ -13,31 +13,67 @@
     const fileInput = ref(null)
     const fileLink = ref('')
 
-    function onFileChange(event) {
-        const file = fileInput.value.files[0]
-        console.log(file)
+    const previewUrl = ref(null)
+    const mSize = ref(128)
+
+    async function onFileChange(event) {
+        const file = event.target.files[0]
+        if (!file) return
+
         imageUrl.value = URL.createObjectURL(file)
-        console.log(imageUrl.value)
+
+        const image = new Image()
+        image.src = URL.createObjectURL(file)
+
+        await new Promise(resolve => {
+            image.onload = resolve
+        })
+
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')
+
+        let width = mSize.value
+        let height = mSize.value
+
+        canvas.width = width
+        canvas.height = height
+        context.drawImage(image, 0, 0, mSize.value, mSize.value)
+
+        previewUrl.value = canvas.toDataURL('image/jpeg')
+        console.log(previewUrl.value)
+
+        console.log(URL.createObjectURL(file))
+        
     }
 
     async function submitUpdates() {
+
+    }
+ 
+    async function submit() {
         const file = fileInput.value.files[0]
         const { data, error } = await supabase.storage
             .from('avatars')
-            .upload(`avatars/${file.name}`, file)
+            .upload(`avatars/${file.name}`, previewUrl.value)
 
         if (error) {
             console.log(error)
         }
+
+        supabase.storage.from('avatars').getPublicUrl(`avatars/${file.name}`, {
+            transform: {
+                width: 170,
+                height: 170,
+            },
+        })
+
         console.log(await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl)
         fileLink.value = await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl
-    }
 
-    async function submit() {
         const { error: pError } = await supabase
             .from('profiles')
             .update({
-                avatar_url: fileLink.value
+                avatar_url: previewUrl.value
             })
             .eq('id', user.value.id)
             if (pError) {
@@ -102,22 +138,21 @@
 
     <body class="bg-zinc-800 overflow-x-hidden">
         <form class="form -translate-y-12 z-10" @submit.prevent="submit">
-        <h2>SIGN UP</h2>
+        <h2>UPDATE</h2>
         <div class="w-full h-10 flex-row flex">
             <div class="flex-1 flex justify-center items-center">
                 <input class="fileThingy cursor-pointer" @change="onFileChange" type="file" ref="fileInput"/>
             </div>
             <div class="flex-1 flex justify-center items-center">
-                <img :src="imageUrl" class="h-16 w-16 translate-x-8 custom-file-upload" />
+                <img :src="imageUrl" class="h-16 w-16 translate-x-8 custom-file-upload rounded-2xl" />
             </div>
         </div>
+        <p type="Bio:"><input v-model="bio" placeholder="Bio" type="text"/></p>
         <p type="Username:"><input v-model="username" placeholder="Username" /></p>
         <p type="Email:"><input v-model="email" placeholder="Email" /></p>
-        <p type="Password:"><input v-model="password" placeholder="Password" type="password"/></p>
         <button @click="submit">Sign Up</button>
-        <button @click="submitUpdates"></button>
+        <div class="translate-y-4 translate-x-2 transition ease-in-out duration-500 hover:translate-y-3 hover:underline w-3/5"><nuxt-link to="settings" class="">Change Password</nuxt-link></div>
       </form>
-
     </body>
 
 </template>
@@ -158,16 +193,6 @@
     .slide-enter,
     .slide-leave-to {
         transform: translateX(100%);
-    }
-
-    .isChanged .bar1 {
-        transform: translate(0, 11px) rotate(-45deg);
-    }
-
-    .isChanged .bar2 {opacity: 0;}
-
-    .isChanged .bar3 {
-        transform: translate(0, -11px) rotate(45deg);
     }
 
     .fileThingy::-webkit-file-upload-button {
