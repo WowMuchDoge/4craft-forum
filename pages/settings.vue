@@ -20,6 +20,8 @@ import { SourceNode } from 'source-map-js/lib/source-node';
     const previewUrl = ref(null)
     const mSize = ref(128)
 
+    const errorMessage = ref(null)
+
     async function onFileChange(event) {
         const file = event.target.files[0]
         if (!file) return
@@ -37,14 +39,17 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         let width = mSize.value
         let height = mSize.value
 
-        if (width > width.value) {
+        if (image.width > width) {
             console.log('Your image must be 128x128 pixels or smaller')
+            errorMessage.value = 'Your image must be 128x128 pixels or smaller'
             return
-        } else if (width != height) {
+        } else if (width != image.height) {
             console.log('Make sure your image aspect ratio is 1:1')
+            errorMessage.value = 'Make sure your image aspect ratio is 1:1'
             return
         }  else {
             console.log(event.target.files[0])
+            errorMessage.value = null
             validImage.value = true
         }
 
@@ -151,6 +156,10 @@ import { SourceNode } from 'source-map-js/lib/source-node';
                 <a href="/settings"><li v-if="user" class="py-2"><h1>Search</h1></li></a>
             </ul>
         </div>
+    </div>
+
+    <div v-if="errorMessage" class="w-full h-10 lg:translate-y-14 max-sm:h-20 bg-red-500 flex items-center justify-center">
+        <h1 class="text-xl mont text-slate-100 text-center max-sm:translate-y-2">{{ errorMessage }}</h1>
     </div>
 
     <body class="bg-zinc-800 overflow-x-hidden">
