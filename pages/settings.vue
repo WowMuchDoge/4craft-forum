@@ -18,7 +18,12 @@ import { SourceNode } from 'source-map-js/lib/source-node';
     const fileLink = ref('')
 
     const previewUrl = ref(null)
+
     const mSize = ref(128)
+
+    const imgSrc = ref("null") 
+
+    imgSrc.value = await (await supabase.from('profiles').select('avatar_url').eq('id', user.value.id)).data[0].avatar_url
 
     const errorMessage = ref(null)
 
@@ -71,31 +76,27 @@ import { SourceNode } from 'source-map-js/lib/source-node';
 
     }
  
-    async function submit() {
+    async function submit(e) {
+        e.preventDefault();
+
+        let rNum = Math.random() * 100000000000000000
+
         const file = fileInput.value.files[0]
         console.log(file)
         const { data, error } = await supabase.storage
             .from('avatars')
-            .upload(`avatars/${file.name}`, imageUrl.value)
+            .upload(`avatars/${rNum}`, file)
 
         if (error) {
             console.log(error)
         }
 
-        supabase.storage.from('avatars').getPublicUrl(`avatars/${file.name}`, {
-            transform: {
-                width: 170,
-                height: 170,
-            },
-        })
-
-        console.log(await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl)
-        fileLink.value = await supabase.storage.from('avatars').getPublicUrl(`avatars/${fileInput.value.files[0].name}`).data.publicUrl
+        fileLink.value = await supabase.storage.from('avatars').getPublicUrl(`avatars/${rNum}`).data.publicUrl
 
         const { error: pError } = await supabase
             .from('profiles')
             .update({
-                avatar_url: imageUrl.value
+                avatar_url: fileLink.value
             })
             .eq('id', user.value.id)
             if (pError) {
@@ -110,7 +111,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
 
 <nav class="min-w-full h-14 max-lg:sticky bg-zinc-900 top-0 fixed z-20">
         <header class="justify-between flex">
-        <div class="flex items-center w-10 max-lg:py-3.5"><a href="/" class="ml-10 text-xl font-semibold text-slate-200">4Craft</a></div>
+        <div class="flex items-center w-18 max-lg:py-3.5"><a href="/" class="ml-10 text-xl font-semibold text-slate-200">4Craft</a></div>
         <div class="w-1/2 h-14 fixed flex translate-x-7o8 justify-end items-center top-0 lg:hidden max-lg"  @click="showMenu = !showMenu">
             <ul class="py-2 cursor-pointer" :class="{ 'change': 'isChanged' }">
                 <div class="bar1 bg-slate-50 w-[35px] h-[5px] my-[6px] justify-end duration-500 bar1"></div>
@@ -170,14 +171,13 @@ import { SourceNode } from 'source-map-js/lib/source-node';
                 <input class="fileThingy cursor-pointer" @change="onFileChange" type="file" ref="fileInput"/>
             </div>
             <div class="flex-1 flex justify-center items-center">
-                <img :src="previewUrl" class="h-16 w-16 translate-x-8 custom-file-upload rounded-2xl" />
+                <img :src="previewUrl ? previewUrl : imgSrc" class="h-16 w-16 translate-x-8 custom-file-upload rounded-2xl" />
             </div>
         </div>
         <p type="Bio:"><input v-model="bio" placeholder="Bio" type="text"/></p>
         <p type="Username:"><input v-model="username" placeholder="Username" /></p>
-        <p type="Email:"><input v-model="email" placeholder="Email" /></p>
-        <button @click="submit">Sign Up</button>
-        <div class="translate-y-4 translate-x-2 transition ease-in-out duration-500 hover:translate-y-3 hover:underline w-3/5"><nuxt-link to="settings" class="">Change Password</nuxt-link></div>
+        <button @click="submit">Update</button>
+        <div class="translate-y-4 translate-x-2 transition ease-in-out duration-500 hover:translate-y-3 hover:underline w-3/5"><nuxt-link to="change-password" class="">Change Password</nuxt-link></div>
       </form>
     </body>
 
@@ -186,7 +186,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
 <style scoped>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-    .form{width:340px;height:465px;background:#e6e6e6;border-radius:8px;box-shadow:0 0 40px -10px #000;margin:calc(50vh - 220px) auto;padding:20px 30px;max-width:calc(100vw - 40px);box-sizing:border-box;font-family:'Montserrat',sans-serif;position:relative}
+    .form{width:340px;height:375px;background:#e6e6e6;border-radius:8px;box-shadow:0 0 40px -10px #000;margin:calc(50vh - 220px) auto;padding:20px 30px;max-width:calc(100vw - 40px);box-sizing:border-box;font-family:'Montserrat',sans-serif;position:relative}
     h2{margin:10px 0;padding-bottom:10px;width:180px;color:#78788c;border-bottom:3px solid #78788c}
     input{width:100%;padding:10px;box-sizing:border-box;background:none;outline:none;resize:none;border:0;font-family:'Montserrat',sans-serif;transition:all .3s;border-bottom:2px solid #bebed2}
     input:focus{border-bottom:2px solid #78788c}

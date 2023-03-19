@@ -16,7 +16,8 @@
             password: password.value,
             options: {
                 data: {
-                    username: username.value
+                    username: username.value,
+                    avatar_url: 'https://cymauhiveikovtpktkql.supabase.co/storage/v1/object/public/avatars/empty_profile.jpg'
                 }
             }
         })
@@ -24,6 +25,8 @@
             console.log(error)
             plError.value = error.message
             }
+           
+        console.log(await supabase.from('profiles').select('*').eq('id', user.value.id))
         }
 </script>
 
