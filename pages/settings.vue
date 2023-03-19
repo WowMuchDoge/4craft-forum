@@ -11,6 +11,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
     const password = ref('')
 
     const validImage = ref(false)
+    const file = ref(null)
 
     const showMenu = ref(false)
     const imageUrl = ref(null)
@@ -27,12 +28,16 @@ import { SourceNode } from 'source-map-js/lib/source-node';
 
     const errorMessage = ref(null)
 
+    bio.value = await (await supabase.from('profiles').select('bio').eq('id', user.value.id)).data[0].bio
+    username.value = await (await supabase.from('profiles').select('username').eq('id', user.value.id)).data[0].username
+
     async function onFileChange(event) {
-        const file = event.target.files[0]
+        file.value = event.target.files[0]
+        event.target.files[0]
         if (!file) return
 
         const image = new Image()
-        image.src = URL.createObjectURL(file)
+        image.src = URL.createObjectURL(file.value)
 
         await new Promise(resolve => {
             image.onload = resolve
@@ -47,10 +52,12 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         if (image.width > width) {
             console.log('Your image must be 128x128 pixels or smaller')
             errorMessage.value = 'Your image must be 128x128 pixels or smaller'
+            file.value = null
             return
         } else if (width != image.height) {
             console.log('Make sure your image aspect ratio is 1:1')
             errorMessage.value = 'Make sure your image aspect ratio is 1:1'
+            file.value = null
             return
         }  else {
             console.log(event.target.files[0])
@@ -70,25 +77,28 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         console.log(URL.createObjectURL(blob))
 
         imageUrl.value = URL.createObjectURL(blob)
+        console.log(file.value)
     }
 
     async function submitUpdates() {
 
     }
+
+    console.log(await (await supabase.from('profiles').select('avatar_url').eq('id', user.value.id)).data[0].avatar_url)
  
     async function submit(e) {
         e.preventDefault();
 
         let rNum = Math.random() * 100000000000000000
+            if (file.value) {
+            console.log(file.value)
+            const { data, error } = await supabase.storage
+                .from('avatars')
+                .upload(`avatars/${rNum}`, file.value)
 
-        const file = fileInput.value.files[0]
-        console.log(file)
-        const { data, error } = await supabase.storage
-            .from('avatars')
-            .upload(`avatars/${rNum}`, file)
-
-        if (error) {
-            console.log(error)
+            if (error) {
+                console.log(error)
+            }
         }
 
         fileLink.value = await supabase.storage.from('avatars').getPublicUrl(`avatars/${rNum}`).data.publicUrl
@@ -96,7 +106,9 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         const { error: pError } = await supabase
             .from('profiles')
             .update({
-                avatar_url: fileLink.value
+                avatar_url: file.value ? fileLink.value : await (await supabase.from('profiles').select('avatar_url').eq('id', user.value.id)).data[0].avatar_url,
+                bio: bio.value,
+                username: username.value ? username.value : await (await supabase.from('profiles').select('username').eq('id', user.value.id)).data[0].username
             })
             .eq('id', user.value.id)
             if (pError) {
