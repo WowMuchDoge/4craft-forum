@@ -13,6 +13,8 @@ import { SourceNode } from 'source-map-js/lib/source-node';
     const validImage = ref(false)
     const file = ref(null)
 
+    const chpa = ref(false)
+
     const showMenu = ref(false)
     const imageUrl = ref(null)
     const fileInput = ref(null)
@@ -117,6 +119,18 @@ import { SourceNode } from 'source-map-js/lib/source-node';
             console.log(fileLink.value, user.value.id)
     }
 
+    async function cpas() {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(user.value.email, {
+            redirectTo: 'http://localhost:3000/change-password',
+        })
+        if (error) {
+            console.log(error)
+        } else {
+            console.log(data)
+        }
+        chpa.value = true
+    }
+
 </script>
 
 <template>
@@ -189,7 +203,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         <p type="Bio:"><input v-model="bio" placeholder="Bio" type="text"/></p>
         <p type="Username:"><input v-model="username" placeholder="Username" /></p>
         <button @click="submit">Update</button>
-        <div class="translate-y-4 translate-x-2 transition ease-in-out duration-500 hover:translate-y-3 hover:underline w-3/5"><nuxt-link to="change-password" class="">Change Password</nuxt-link></div>
+        <div class="translate-y-0 -translate-x-2 transition ease-in-out duration-500 hover:underline w-4/5"><button @click="cpas">Change Password</button></div>
       </form>
     </body>
 
