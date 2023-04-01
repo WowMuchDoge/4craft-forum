@@ -120,15 +120,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
     }
 
     async function cpas() {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(user.value.email, {
-            redirectTo: 'http://localhost:3000/change-password',
-        })
-        if (error) {
-            console.log(error)
-        } else {
-            console.log(data)
-        }
-        chpa.value = true
+        window.location.href = '/change-password'
     }
 
 </script>

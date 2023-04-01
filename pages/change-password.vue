@@ -1,16 +1,23 @@
 <script setup>
+import { encrypt } from 'iron-webcrypto';
+
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
-    let plError = ref('')
-
-    const username = ref('')
-    const email = ref('')
     const password = ref('')
+    const newPassword = ref('')
+
+    const text = ref('')
+
+    while (true){}
+    if (password.value != newPassword.value) {
+        text.value = "Passwords are not the same"
+    } else {
+        text.value = "Good"
+    }
 
     const showMenu = ref(false)
 
-    
 </script>
 
 <template>
@@ -51,6 +58,10 @@
     </header>
     </nav>
 
+    <div class="w-screen h-14 flex justify-center items-center bg-red-500 py-14">
+        <p class="text-2xl text-slate-100">{{ text }}</p>
+    </div>
+
     <div v-if="showMenu" class="fixed flex w-1/2 items-center justify-end z-50" id="mendiv">
         <div class="w-full h-screen flex justify-start translate-x-full z-50 duration-500 menu -translate-y-1 bg-zinc-900 slide" id="menu">
             <ul class="px-14 text-xl py-4 text-slate-200 max-[382px]:text-lg">
@@ -68,8 +79,8 @@
     <body class="bg-zinc-800 overflow-hidden">
         <form class="form -translate-y-12 z-10" @submit.prevent="submit">
         <h2>CHANGE PASSWORD</h2>
-        <p type="Password:"><input v-model="username" placeholder="Password" /></p>
-        <p type="Password:"><input v-model="email" placeholder="Password Again" /></p>
+        <p type="Enter Password:"><input v-model="password" placeholder="Password" /></p>
+        <p type="Enter Password Again:"><input v-model="newPassword" placeholder="Password Again" /></p>
         <button @click="submit">Change Password</button>
       </form>
     </body>
