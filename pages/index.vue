@@ -3,8 +3,6 @@
     const user = useSupabaseUser()
 
     const showMenu = ref(false)
-
-    
 </script>
 
 <template>

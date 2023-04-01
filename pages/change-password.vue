@@ -1,19 +1,22 @@
 <script setup>
-import { encrypt } from 'iron-webcrypto';
-
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
     const password = ref('')
     const newPassword = ref('')
 
-    const text = ref('')
 
-    while (true){}
-    if (password.value != newPassword.value) {
-        text.value = "Passwords are not the same"
-    } else {
-        text.value = "Good"
+    const text = ref(null)
+
+    async function submit() {
+        if (password.value != newPassword.value) {
+                text.value = "Passwords are not the same"
+            } else {
+                const {data: data, error: error} = await supabase.auth.updateUser({password: password.value})
+                if (error) {
+                    text.value = 'Error updating password, check dev console for more information'
+                }
+        }
     }
 
     const showMenu = ref(false)
@@ -49,7 +52,7 @@ import { encrypt } from 'iron-webcrypto';
                 <li><a href="#" class="text-slate-200 text-base font-normal transition duration-500 hover:opacity-60 ease-in-out">Users</a></li>
             </ul>
             <ul v-if="user" class="px-10 transition duration-300 hover:-translate-y-0.5">
-                <li><a href="/Settings" class="text-slate-200 text-base font-normal transition duration-500 hover:opacity-60 ease-in-out">User Settings</a></li>
+                <li><a href="/settings" class="text-slate-200 text-base font-normal transition duration-500 hover:opacity-60 ease-in-out">User Settings</a></li>
             </ul>
             <ul class="px-10 transition duration-300 hover:-translate-y-0.5">
                 <li><a href="#" class="text-slate-200 text-base font-normal transition duration-500 hover:opacity-60 ease-in-out">Search</a></li>
@@ -58,7 +61,7 @@ import { encrypt } from 'iron-webcrypto';
     </header>
     </nav>
 
-    <div class="w-screen h-14 flex justify-center items-center bg-red-500 py-14">
+    <div v-if="text" class="w-screen h-2 flex justify-center items-center bg-red-500 py-14">
         <p class="text-2xl text-slate-100">{{ text }}</p>
     </div>
 

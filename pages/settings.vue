@@ -1,6 +1,4 @@
 <script setup>
-import { SourceNode } from 'source-map-js/lib/source-node';
-
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
@@ -119,7 +117,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
             console.log(fileLink.value, user.value.id)
     }
 
-    async function cpas() {
+    function cpas() {
         window.location.href = '/change-password'
     }
 
@@ -195,7 +193,7 @@ import { SourceNode } from 'source-map-js/lib/source-node';
         <p type="Bio:"><input v-model="bio" placeholder="Bio" type="text"/></p>
         <p type="Username:"><input v-model="username" placeholder="Username" /></p>
         <button @click="submit">Update</button>
-        <div class="translate-y-0 -translate-x-2 transition ease-in-out duration-500 hover:underline w-4/5"><button @click="cpas">Change Password</button></div>
+        <div class="translate-y-5 translate-x-3 transition ease-in-out duration-500 hover:underline hover:translate-y-4 w-4/5"><a href="/change-password">Change Password</a></div>
       </form>
     </body>
 
